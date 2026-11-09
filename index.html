@@ -1,0 +1,256 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ee4d2d">
+<title>Shopee Flash Sale Assistant</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#f5f5f5;color:#222;
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+header{
+ background:#ee4d2d;color:white;padding:25px 20px;
+ border-radius:0 0 22px 22px;
+}
+header h1{margin:0;font-size:24px}
+header p{margin:7px 0 0;font-size:13px}
+main{max-width:700px;margin:auto;padding:16px}
+.card{
+ background:white;border-radius:16px;padding:18px;
+ margin-bottom:15px;box-shadow:0 2px 9px #0000000a;
+}
+h2{font-size:17px;margin:0 0 15px}
+label{display:block;font-size:13px;margin:12px 0 6px}
+input{
+ width:100%;padding:13px;border:1px solid #ddd;
+ border-radius:10px;font-size:15px;background:white;
+}
+button{
+ border:0;border-radius:10px;padding:13px;
+ font-size:14px;font-weight:bold;cursor:pointer;
+}
+.primary{background:#ee4d2d;color:white;width:100%;margin-top:15px}
+.secondary{background:#fff0eb;color:#ee4d2d}
+.delete{background:#ffeaea;color:#d22}
+.product{
+ border:1px solid #eee;border-radius:13px;
+ padding:14px;margin-top:12px;
+}
+.product h3{font-size:16px;margin:0 0 8px}
+.price{color:#ee4d2d;font-weight:bold;font-size:20px}
+.timer{font-size:19px;font-weight:bold;color:#ee4d2d;margin:8px 0}
+.small{font-size:12px;color:#777}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.actions button{flex:1}
+.empty{text-align:center;color:#999;padding:25px}
+.badge{color:#ee4d2d;background:#fff0eb;padding:5px 9px;border-radius:20px;font-size:11px}
+</style>
+</head>
+<body>
+
+<header>
+ <h1>🛍️ FLASH SALE</h1>
+ <p>Shopee Flash Sale Assistant | iPad Edition</p>
+</header>
+
+<main>
+
+<div class="card">
+ <h2>📊 ภาพรวม</h2>
+ <div style="display:flex;justify-content:space-between">
+  <div>
+   <div class="small">สินค้าที่ติดตาม</div>
+   <div id="total" style="font-size:27px;font-weight:bold">0</div>
+  </div>
+  <div>
+   <div class="small">ถึงราคาเป้าหมาย</div>
+   <div id="matched" style="font-size:27px;font-weight:bold;color:#ee4d2d">0</div>
+  </div>
+ </div>
+</div>
+
+<div class="card">
+ <h2>➕ เพิ่มสินค้าที่ต้องการ</h2>
+
+ <label>ชื่อสินค้า</label>
+ <input id="name" placeholder="เช่น iPad, โทรศัพท์">
+
+ <label>ลิงก์สินค้า Shopee</label>
+ <input id="url" type="url" placeholder="https://shopee.co.th/...">
+
+ <label>ราคาเป้าหมาย (บาท)</label>
+ <input id="target" type="number" min="0" placeholder="เช่น 99">
+
+ <label>ราคา ณ ตอนนี้ (บาท)</label>
+ <input id="current" type="number" min="0" placeholder="กรอกราคาปัจจุบัน">
+
+ <label>วันและเวลา Flash Sale</label>
+ <input id="date" type="datetime-local">
+
+ <button class="primary" onclick="addProduct()">+ เพิ่มสินค้า</button>
+</div>
+
+<div class="card">
+ <h2>⏰ สินค้าที่กำลังติดตาม</h2>
+ <div id="products">
+  <div class="empty">ยังไม่มีสินค้า<br>เพิ่มสินค้าเพื่อเริ่มติดตาม</div>
+ </div>
+</div>
+
+<div class="card">
+ <h2>📌 วิธีใช้งาน</h2>
+ <p class="small">1. เพิ่มลิงก์สินค้าที่ต้องการ</p>
+ <p class="small">2. กำหนดราคาเป้าหมาย</p>
+ <p class="small">3. ตั้งวันและเวลา Flash Sale</p>
+ <p class="small">4. อัปเดตราคาที่เห็นใน Shopee ด้วยตัวเอง</p>
+ <p class="small">5. เมื่อถึงเวลา เปิดหน้าสินค้าและตรวจสอบก่อนสั่งซื้อ</p>
+</div>
+
+</main>
+
+<script>
+let products = JSON.parse(
+ localStorage.getItem("flashProducts") || "[]"
+);
+
+function save(){
+ localStorage.setItem("flashProducts",JSON.stringify(products));
+ render();
+}
+
+function addProduct(){
+ const name=document.getElementById("name").value.trim();
+ const url=document.getElementById("url").value.trim();
+ const target=Number(document.getElementById("target").value);
+ const current=Number(document.getElementById("current").value);
+ const date=document.getElementById("date").value;
+
+ if(!name||!url||!target||!date){
+  alert("กรุณากรอกข้อมูลให้ครบ");
+  return;
+ }
+
+ try{
+  const link=new URL(url);
+  if(link.protocol!=="https:" ||
+    !(link.hostname==="shopee.co.th" ||
+      link.hostname.endsWith(".shopee.co.th"))){
+    alert("กรุณาใส่ลิงก์สินค้าจาก shopee.co.th");
+    return;
+  }
+ }catch(e){
+  alert("ลิงก์สินค้าไม่ถูกต้อง");
+  return;
+ }
+
+ products.push({
+  id:Date.now(),
+  name,url,target,current:current||0,date,
+  history:current>0?[{price:current,time:new Date().toLocaleString("th-TH")}]:[]
+ });
+
+ document.getElementById("name").value="";
+ document.getElementById("url").value="";
+ document.getElementById("target").value="";
+ document.getElementById("current").value="";
+ document.getElementById("date").value="";
+ save();
+}
+
+function updatePrice(id){
+ const p=products.find(x=>x.id===id);
+ const value=prompt("กรอกราคาล่าสุดที่เห็นใน Shopee (บาท)",p.current||"");
+ if(value===null)return;
+ const price=Number(value);
+ if(!Number.isFinite(price)||price<=0){
+  alert("กรุณากรอกราคาที่ถูกต้อง");
+  return;
+ }
+ p.current=price;
+ p.history.push({
+  price,
+  time:new Date().toLocaleString("th-TH")
+ });
+ save();
+ if(price<=p.target){
+  alert("🎉 ราคาถึงเป้าหมายแล้ว! ตรวจสอบสินค้าใน Shopee ได้เลย");
+ }
+}
+
+function removeProduct(id){
+ if(!confirm("ต้องการลบสินค้านี้หรือไม่?"))return;
+ products=products.filter(p=>p.id!==id);
+ save();
+}
+
+function openProduct(url){
+ window.open(url,"_blank");
+}
+
+function countdown(date){
+ const diff=new Date(date)-new Date();
+ if(diff<=0)return "ถึงเวลา Flash Sale แล้ว!";
+ const d=Math.floor(diff/86400000);
+ const h=Math.floor(diff%86400000/3600000);
+ const m=Math.floor(diff%3600000/60000);
+ const s=Math.floor(diff%60000/1000);
+ return `${d} วัน ${h} ชม. ${m} นาที ${s} วินาที`;
+}
+
+function render(){
+ const container=document.getElementById("products");
+ document.getElementById("total").textContent=products.length;
+ document.getElementById("matched").textContent=
+ products.filter(p=>p.current>0&&p.current<=p.target).length;
+
+ if(!products.length){
+  container.innerHTML='<div class="empty">ยังไม่มีสินค้า<br>เพิ่มสินค้าเพื่อเริ่มติดตาม</div>';
+  return;
+ }
+
+ container.innerHTML=products.map(p=>`
+  <div class="product">
+   <h3>${escapeHTML(p.name)}</h3>
+   <span class="badge">FLASH SALE</span>
+   <p class="small">ราคาเป้าหมาย</p>
+   <div class="price">฿${p.target.toLocaleString()}</div>
+   <p class="small">ราคาล่าสุดที่บันทึก</p>
+   <b>฿${p.current?p.current.toLocaleString():"ยังไม่มีข้อมูล"}</b>
+   <div class="timer" id="timer-${p.id}">${countdown(p.date)}</div>
+   <p class="small">ประวัติราคา ${p.history.length} รายการ</p>
+   <div class="actions">
+    <button class="secondary" onclick="updatePrice(${p.id})">อัปเดตราคา</button>
+    <button class="secondary" onclick="openProduct('${p.url}')">เปิด Shopee ↗</button>
+    <button class="delete" onclick="removeProduct(${p.id})">ลบ</button>
+   </div>
+   <details style="margin-top:12px">
+    <summary class="small">ดูประวัติราคา</summary>
+    ${p.history.map(h=>`<p class="small">฿${h.price} — ${escapeHTML(h.time)}</p>`).join("")}
+   </details>
+  </div>
+ `).join("");
+}
+
+function escapeHTML(value){
+ return String(value).replace(/[&<>"']/g,c=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",
+  '"':"&quot;","'":"&#39;"
+ }[c]));
+}
+
+function updateTimers(){
+ products.forEach(p=>{
+  const el=document.getElementById("timer-"+p.id);
+  if(el)el.textContent=countdown(p.date);
+ });
+}
+
+render();
+setInterval(updateTimers,1000);
+</script>
+</body>
+</html>
