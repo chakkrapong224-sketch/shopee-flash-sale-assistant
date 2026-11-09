@@ -255,7 +255,9 @@ setInterval(updateTimers,1000);
 // เปิดหน้าสินค้า Shopee ด้วยการกดจากผู้ใช้
 function quickCheckout(productId) {
   const product = products.find(p => p.id === productId);
-
+<button class="open-link" onclick="quickCheckout('${p.id}')">
+  ⚡ เปิดสินค้าเพื่อซื้อ
+</button>
   if (!product) {
     alert("ไม่พบสินค้า");
     return;
