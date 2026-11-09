@@ -252,5 +252,32 @@ function updateTimers(){
 render();
 setInterval(updateTimers,1000);
 </script>
+// เปิดหน้าสินค้า Shopee ด้วยการกดจากผู้ใช้
+function quickCheckout(productId) {
+  const product = products.find(p => p.id === productId);
+
+  if (!product) {
+    alert("ไม่พบสินค้า");
+    return;
+  }
+
+  if (!safeShopeeUrl(product.url)) {
+    alert("ลิงก์สินค้าไม่ถูกต้อง");
+    return;
+  }
+
+  // เปิดหน้าสินค้าเท่านั้น ไม่ส่งคำสั่งซื้อ
+  const opened = window.open(
+    product.url,
+    "_blank",
+    "noopener,noreferrer"
+  );
+
+  if (!opened) {
+    alert("เบราว์เซอร์บล็อกหน้าต่างใหม่ กรุณาอนุญาต Pop-up");
+  }
+}
+window.quickCheckout = quickCheckout;
+
 </body>
 </html>
